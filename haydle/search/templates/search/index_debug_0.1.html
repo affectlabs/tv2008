@@ -1,0 +1,33 @@
+<html><head>
+<title>Search</title>
+</head>
+
+<body>
+<form action="/" method="post">
+<table>
+ {{ form }}
+ <tr><td><input type="Submit" value="Search"></td></tr>
+</table>
+
+{% if results %}
+<ol>
+  {% for result in results %}
+  <li><b>{{result.polarity}} - good {{result.probgood}} bad {{result.probbad}}</b>: {{ result.text }}</li>
+  {% endfor %}
+</ol>
+{% endif %}
+{% if resultsgood %}
+<ol>
+  {% for result in resultsgood %}
+  <li><b>{{result.polarity}} - good {{result.probgood}} bad {{result.probbad}}</b>: {{ result.text }}</li>
+  {% endfor %}
+</ol>
+{% endif %}
+{% if resultsbad %}
+<ol>
+  {% for result in resultsbad %}
+  <li><b>{{result.polarity}} - good {{result.probgood}} bad {{result.probbad}}</b>: {{ result.text }}</li>
+  {% endfor %}
+</ol>
+{% endif %}
+</body></html>

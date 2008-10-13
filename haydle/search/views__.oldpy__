@@ -1,0 +1,88 @@
+from django.shortcuts import render_to_response
+from django import newforms as forms
+from haydle.search.models import SearchForm
+import twitter
+import re
+import math
+
+def search(str):
+    api = twitter.Api()
+    data = api.Search(str)
+    # now we have bag of twitter.Status examples
+    # return [x.text for x in data]
+    return data
+
+# Now the fun bit. Building a classifier
+# Baseline from Prog. Collective Intelligence pg188pp
+
+def getwords(sent):
+    splitter = re.compile('\\W*')
+    # Split by non-alpha
+    words = [s.lower() for s in splitter.split(sent) if len(s)>2 and len(s)<20]
+    # Return (Lets not do uniques for now)
+    return words
+
+class classifier:
+    def __init__(self,getfeatures,filename=None):
+     # counts of feature/categories
+     self.fc = {}
+     # counts of examples in each cat
+     self.cc = {}
+     self.getfeatures = getfeatures
+     
+     # Methods to alter and access counts.
+    
+     # increase feature,cat pair count 
+     def incf(self,f,cat):
+        self.fc.setdefault(f,{})
+        self.fc[f].setdefault(cat,0)
+        self.fc[f][cat] += 1
+
+     # increase cat count
+     def incc(self,cat):
+        self.cc.setdefault(cat,0)
+        self.cc[cat] += 1
+
+     # Number of times feature appears in cat
+     def fcount(self,f,cat):
+        if f in self.fc and cat in self.fc[f]:
+            return float(self.fc[f][cat])
+        return 0.0
+
+     # Number of items in cat
+     def catcount(self,cat):
+        if cat in self.cc:
+            return float(self.cc[cat])
+        return 0.0
+
+     # Total number of items
+     def totalcount(self):
+         return sum(self.cc.values())
+    
+     # Category list
+     def categories(self):
+         return self.cc.keys()
+
+     # Train method for supervised examples
+     def train(self,item,cat):
+         features = self.getfeatures(item)
+         # For every feature in this item, increment count for this category
+         for f in features:
+             self.incf(f,cat)
+         # Then increment count of category (total examples in cat)
+         self.incc(cat)
+
+
+def index(request): 
+    results = None
+    if request.method == "POST":
+       form = SearchForm(request.POST)
+       if form.is_valid():
+          search_terms = form.cleaned_data['search_terms']
+          results = search(search_terms)
+          cl = classifier(getwords)
+          #for r in results:
+          #    cl.train(r.text, 'good')
+    else:
+       form = SearchForm()
+    return render_to_response('search/index.html', {'form': form, 'results': results})
