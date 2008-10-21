@@ -1,19 +1,49 @@
 <html><head>
-<title>Search</title>
+<title>Bayesian Filter Demo</title>
+<link href="http://www.haydle.com/style.css" rel="stylesheet" type="text/css" />
+<script language="JavaScript">
+function toggleLayer( whichLayer )
+{
+    var div = document.getElementsByTagName("div");
+    for (var i=0; i<div.length; i++) {
+       if(div[i].getAttribute("class") == whichLayer) {
+	    if (div[i].style.display=='none') {
+	        div[i].style.display = 'block';
+            } else { 
+	        div[i].style.display = 'none';
+	   }
+       }
+    }
+}
+</script>
 </head>
+
 
 <body>
 <form action="/" method="post">
+<div align="center" id="bodydiv">
+<div align="left" id="disclaimer" class="disclaimer">
+<h3>Bayesian Filter Demo</h3>
+<p>Welcome! This is a basic Bayesian classifier running on the Twitter Search API. Enter a search term (such as <a href="/search/iphone">iPhone</a>, <a href="/search/obama">Obama</a> or <a href="/search/crisis">crisis</a>) to see a colour-coded representation of opinion (red is positive, blue is negative).</p>
+
+<p>Bear in mind this is a development server and your request may be slow or fail completely - not all bugs have been hunted down yet.</p>
+<p>The algorithm behind this search is very basic and makes no claims to be accurate; this is merely an early example of the sort of thing we are working on. At the moment results can be inaccurate due to various factors, such as a small sample size and very limited lexicon usage.</p>
+<p><small><a href="javascript:toggleLayer('disclaimer');">Hide disclaimer</a></small></p>
+</div>
 <table>
  {{ form }}
- <tr><td><input type="Submit" value="Search"></td></tr>
+ <tr><td colspan="2"><input type="Submit" value="Search"></td></tr>
 </table>
-
+{% autoescape off %}
 {% if results %}
-<ol>
+<p><b><span class="good">{{numpos}} positive</span>, <span class="bad">{{numneg}} negative</span></b></p>
+<a href="javascript:toggleLayer('neutral');">Toggle neutral messages</a>
   {% for result in results %}
-  <li><b>{{result.polarity}} - good {{result.probgood}} bad {{result.probbad}}</b>: {{ result.text }}</li>
+  <div id="tweetdiv" class="{{result.polarity}}">
+  {{ result.text }}<br/><small>{{result.GetRelativeCreatedAt}}</small>
+  </div>
   {% endfor %}
-</ol>
 {% endif %}
+{% endautoescape %}
+</div>
 </body></html>
